@@ -1,0 +1,106 @@
+﻿<Window x:Class="UsersMvvm.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:UsersMvvm"
+        xmlns:converters="clr-namespace:UsersMvvm.Converters"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="850">
+    <Window.Resources>
+        <converters:ParamsConverter x:Key="ParamsConverter"/>
+    </Window.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="0.3*"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="0.3*"/>
+            </Grid.ColumnDefinitions>
+
+            <DataGrid Grid.Column="0" ItemsSource="{Binding PublicUsers}" x:Name="dataGrid" 
+                      AutoGenerateColumns="False" IsReadOnly="True" FontSize="14">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Binding="{Binding Path=ID}"         Header="ID"/>
+                    <DataGridTextColumn Binding="{Binding Path=LastName}"   Header="LastName"/>
+                    <DataGridTextColumn Binding="{Binding Path=Name}"       Header="Name"/>
+                    <DataGridTextColumn Binding="{Binding Path=SecondName}" Header="SecondName"/>
+                    <DataGridTextColumn Binding="{Binding Path=Email}"      Header="Email" Width="*"/>
+                </DataGrid.Columns>
+            </DataGrid>
+
+                <DockPanel Grid.Column="1">
+                <StackPanel VerticalAlignment="Top" DockPanel.Dock="Top">
+                    <TextBox x:Name="ID_textBox" Margin="5" FontSize="14"
+                             DataContext="{Binding ElementName=dataGrid, Mode=OneWay}">
+                    <TextBox.Text>
+                            <Binding Path="SelectedItem.ID">
+                                <Binding.ValidationRules>
+                                    <ExceptionValidationRule/>
+                                </Binding.ValidationRules>
+                            </Binding>
+                        </TextBox.Text>
+                    </TextBox>
+                    
+                    <TextBox x:Name="LastName_textBox"      Margin="5" FontSize="14"
+                             Text="{Binding ElementName=dataGrid, Path=SelectedItem.LastName, Mode=OneWay}"/>
+                    <TextBox x:Name="Name_textBox"          Margin="5" FontSize="14"
+                             Text="{Binding ElementName=dataGrid, Path=SelectedItem.Name, Mode=OneWay}"/>
+                    <TextBox x:Name="SecondName_textBox"    Margin="5" FontSize="14"
+                             Text="{Binding ElementName=dataGrid, Path=SelectedItem.SecondName, Mode=OneWay}"/>
+                    <TextBox x:Name="Email_textBox"         Margin="5" FontSize="14"
+                             Text="{Binding ElementName=dataGrid, Path=SelectedItem.Email, Mode=OneWay}"/>
+                </StackPanel>
+
+                <StackPanel VerticalAlignment="Bottom" DockPanel.Dock="Bottom">
+                    <Button Content="Add" Margin="10" Height="30" Command="{Binding AddUser}">
+                        <Button.CommandParameter>
+                            <MultiBinding Converter="{StaticResource ParamsConverter}">
+                                <Binding ElementName="ID_textBox"           Path="Text"/>
+                                <Binding ElementName="LastName_textBox"     Path="Text"/>
+                                <Binding ElementName="Name_textBox"         Path="Text"/>
+                                <Binding ElementName="SecondName_textBox"   Path="Text"/>
+                                <Binding ElementName="Email_textBox"        Path="Text"/>
+                            </MultiBinding>
+                        </Button.CommandParameter>
+                    </Button>
+                    <Button Content="Remove" Margin="10" Height="30" Command="{Binding RemoveUser}">
+                        <Button.CommandParameter>
+                            <MultiBinding Converter="{StaticResource ParamsConverter}">
+                                <Binding ElementName="dataGrid" Path="SelectedIndex"/>
+                            </MultiBinding>
+                        </Button.CommandParameter>
+                    </Button>
+                    <Button Content="Change" Margin="10" Height="30" Command="{Binding ChangeUser}">
+                        <Button.CommandParameter>
+                            <MultiBinding Converter="{StaticResource ParamsConverter}">
+                                <Binding ElementName="dataGrid" Path="SelectedIndex"/>
+                                <Binding ElementName="ID_textBox"           Path="Text"/>
+                                <Binding ElementName="LastName_textBox"     Path="Text"/>
+                                <Binding ElementName="Name_textBox"         Path="Text"/>
+                                <Binding ElementName="SecondName_textBox"   Path="Text"/>
+                                <Binding ElementName="Email_textBox"        Path="Text"/>
+                            </MultiBinding>
+                        </Button.CommandParameter>
+                    </Button>
+                </StackPanel>
+            </DockPanel>
+        </Grid>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal">
+            <Button x:Name="binarSerialize_btn" Content="Binar Serialize" Command="{Binding BinarSerialization}"
+                    HorizontalAlignment="Left" Width="100" Height="40" Margin="10"/>
+            <Button x:Name="xmlSerialize_btn" Content="Xml Serialize" Command="{Binding XmlSerialization}"
+                    HorizontalAlignment="Left" Width="100" Height="40" Margin="10"/>
+            <Button x:Name="jsonSerialize_btn" Content="Json Serialize" Command="{Binding JsonSerialization}"
+                    HorizontalAlignment="Left" Width="100" Height="40" Margin="10"/>
+        </StackPanel>
+    </Grid>
+</Window>
