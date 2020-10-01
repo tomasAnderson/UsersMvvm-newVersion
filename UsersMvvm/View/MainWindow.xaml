@@ -39,16 +39,7 @@
                 <DockPanel Grid.Column="1">
                 <StackPanel VerticalAlignment="Top" DockPanel.Dock="Top">
                     <TextBox x:Name="ID_textBox" Margin="5" FontSize="14"
-                             DataContext="{Binding ElementName=dataGrid, Mode=OneWay}">
-                    <TextBox.Text>
-                            <Binding Path="SelectedItem.ID">
-                                <Binding.ValidationRules>
-                                    <ExceptionValidationRule/>
-                                </Binding.ValidationRules>
-                            </Binding>
-                        </TextBox.Text>
-                    </TextBox>
-                    
+                             Text="{Binding ElementName=dataGrid, Path=SelectedItem.ID, Mode=OneWay}"/>
                     <TextBox x:Name="LastName_textBox"      Margin="5" FontSize="14"
                              Text="{Binding ElementName=dataGrid, Path=SelectedItem.LastName, Mode=OneWay}"/>
                     <TextBox x:Name="Name_textBox"          Margin="5" FontSize="14"
@@ -95,11 +86,15 @@
         </Grid>
 
         <StackPanel Grid.Row="1" Orientation="Horizontal">
-            <Button x:Name="binarSerialize_btn" Content="Binar Serialize" Command="{Binding BinarSerialization}"
+            <Button x:Name="binarSerialize_btn" Content="Clear Table" Command="{Binding BinarSerialization}"
                     HorizontalAlignment="Left" Width="100" Height="40" Margin="10"/>
-            <Button x:Name="xmlSerialize_btn" Content="Xml Serialize" Command="{Binding XmlSerialization}"
+            <Button Content="Chose Xml file" Command="{Binding ChoseXml}"
                     HorizontalAlignment="Left" Width="100" Height="40" Margin="10"/>
-            <Button x:Name="jsonSerialize_btn" Content="Json Serialize" Command="{Binding JsonSerialization}"
+            <Button Content="Save Xml file" Command="{Binding SaveXml}"
+                    HorizontalAlignment="Left" Width="100" Height="40" Margin="10"/>
+            <Button Content="Chose Binary file" Command="{Binding ChoseBinary}"
+                    HorizontalAlignment="Left" Width="100" Height="40" Margin="10"/>
+            <Button Content="Save Binary file" Command="{Binding SaveBinary}"
                     HorizontalAlignment="Left" Width="100" Height="40" Margin="10"/>
         </StackPanel>
     </Grid>

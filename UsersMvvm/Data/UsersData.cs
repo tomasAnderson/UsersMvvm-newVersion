@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -7,221 +8,158 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Serialization;
 using UsersMvvm.abstraction;
+using UsersMvvm.Classes;
 using UsersMvvm.Model;
 
 namespace UsersMvvm.Data
 {
     public class UsersData
     {
-        public ObservableCollection<UserAbstraction> PublicUsers;
+        public ObservableCollection<UserAbstraction> PublicUsers { get; set; }
         public ObservableCollection<User> Users { get; set; }
+        MyBinaryWriter writer;
 
-        public UsersData(bool xmlSerialize, bool binarSerialize, bool jsonSerialize)
+        public UsersData()
         {
             Users = new ObservableCollection<User>();
             PublicUsers = new ObservableCollection<UserAbstraction>();
-
-            try
-            {
-                if (xmlSerialize)
-                    xmlSerializationOutput();
-                if (binarSerialize)
-                    binarySerializationOutput();
-                if (jsonSerialize)
-                    jsonSerializationOutput();
-            }
-            catch (Exception) { }
+            writer = new MyBinaryWriter();
         }
 
         #region XML Serialization
-        public void xmlSerializationOutput() 
+        public void openXmlFile() 
         {
-            XmlSerializer formatter = new XmlSerializer(typeof(ObservableCollection<UserAbstraction>));
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.FileName = "users.xml";
+            openFileDialog.DefaultExt = ".xml";
+            openFileDialog.Filter = "Xml documents (.xml)|*.xml";
 
-            PublicUsers.Clear();
-
-            using (FileStream fs = new FileStream("users.xml", FileMode.OpenOrCreate))
+            var result = openFileDialog.ShowDialog();
+            if (result == true)
             {
-                PublicUsers = (ObservableCollection<UserAbstraction>)formatter.Deserialize(fs);
+                PublicUsers.Clear();
 
-                addDataToUsers();
+                using (FileStream fs = new FileStream(openFileDialog.FileName, FileMode.OpenOrCreate))
+                {
+                    XmlReader reader = new XmlTextReader(fs);
+                    XmlSerializer serializer = new XmlSerializer(typeof(ObservableCollection<UserAbstraction>));
+
+                    if (serializer.CanDeserialize(reader))
+                    {
+                        PublicUsers = (ObservableCollection<UserAbstraction>)serializer.Deserialize(reader);
+                    }
+
+                    addDataToUsers();
+                }
             }
         }
 
-        public void xmlSerializationAddUser(int id, string lastName, string name, string secondName, string email) 
+        public void saveXmlFile(ObservableCollection<User> Users) 
         {
-            xmlSerializationOutput();
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.FileName = "users.xml";
+            saveFileDialog.DefaultExt = ".xml";
+            saveFileDialog.Filter = "Xml documents (.xml)|*.xml";
 
-            XmlSerializer formatter = new XmlSerializer(typeof(ObservableCollection<UserAbstraction>));
-
-            using (FileStream fs = new FileStream("users.xml", FileMode.OpenOrCreate))
+            var result = saveFileDialog.ShowDialog();
+            if (result == true) 
             {
-                PublicUsers.Add(new UserAbstraction { ID = id, LastName = lastName, Name = name, SecondName = secondName, Email = email });
+                foreach (var u in Users)
+                    PublicUsers.Add(new UserAbstraction
+                    {
+                        ID = u.ID,
+                        LastName = u.LastName,
+                        Name = u.Name,
+                        SecondName = u.SecondName,
+                        Email = u.Email
+                    });
 
-                formatter.Serialize(fs, PublicUsers);
+                using (XmlWriter xmlWriter = XmlWriter.Create(saveFileDialog.FileName))
+                {
+                    xmlWriter.WriteStartElement("ArrayOfUserAbstraction");
 
-                addDataToUsers();
-            }
-        }
+                    foreach (var users in PublicUsers)
+                    {
+                        xmlWriter.WriteStartElement("UserAbstraction");
 
-        public void xmlSerializationRemoveUser(int index) 
-        {
-            xmlSerializationOutput();
+                        xmlWriter.WriteStartElement("ID");
+                        xmlWriter.WriteString(users.ID.ToString().Trim());
+                        xmlWriter.WriteEndElement();
 
-            XmlSerializer formatter = new XmlSerializer(typeof(ObservableCollection<UserAbstraction>));
+                        xmlWriter.WriteStartElement("LastName");
+                        xmlWriter.WriteString(users.LastName);
+                        xmlWriter.WriteEndElement();
 
-            using (FileStream fs = new FileStream("users.xml", FileMode.Create))
-            {
-                PublicUsers.RemoveAt(index);
+                        xmlWriter.WriteStartElement("Name");
+                        xmlWriter.WriteString(users.Name);
+                        xmlWriter.WriteEndElement();
 
-                formatter.Serialize(fs, PublicUsers);
+                        xmlWriter.WriteStartElement("SecondName");
+                        xmlWriter.WriteString(users.SecondName);
+                        xmlWriter.WriteEndElement();
 
-                addDataToUsers();
-            }
-        }
+                        xmlWriter.WriteStartElement("Email");
+                        xmlWriter.WriteString(users.Email);
+                        xmlWriter.WriteEndElement();
 
-        public void xmlSerializationChangeUser(int index, int id, string lastName, string name, string secondName, string email) 
-        {
-            xmlSerializationOutput();
+                        xmlWriter.WriteEndElement();
+                    }
+                    //xmlWriter.WriteStartElement("user");
+                    //xmlWriter.WriteAttributeString("email", "1vasya@gmail.com");
+                    //xmlWriter.WriteString("1Vasya 1Pupkin");
 
-            XmlSerializer formatter = new XmlSerializer(typeof(ObservableCollection<UserAbstraction>));
-
-            using (FileStream fs = new FileStream("users.xml", FileMode.Create)) 
-            {
-                PublicUsers[index] = new UserAbstraction { ID = id, LastName = lastName, Name = name, SecondName = secondName, Email = email };
-
-                formatter.Serialize(fs, PublicUsers);
-
-                addDataToUsers();
+                    xmlWriter.WriteEndDocument();
+                }
             }
         }
         #endregion
 
         #region Binary Serialization
-        public void binarySerializationOutput() 
+        public void openBinaryFile() 
         {
-            BinaryFormatter formatter = new BinaryFormatter();
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.FileName = "users.bin";
+            openFileDialog.DefaultExt = ".bin";
+            openFileDialog.Filter = "Binar documents (.bin)|*.bin";
 
-            PublicUsers.Clear();
-
-            using (FileStream fs = new FileStream("users.dat", FileMode.OpenOrCreate)) 
+            var result = openFileDialog.ShowDialog();
+            if (result == true)
             {
-                PublicUsers = (ObservableCollection<UserAbstraction>)formatter.Deserialize(fs);
+                PublicUsers.Clear();
+
+                PublicUsers = writer.Read(openFileDialog.FileName);
 
                 addDataToUsers();
             }
         }
 
-        public void binarySerializationAddUser(int id, string lastName, string name, string secondName, string email) 
+        public void saveBinaryFile(ObservableCollection<User> Users) 
         {
-            binarySerializationOutput();
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.FileName = "users.bin";
+            saveFileDialog.DefaultExt = ".bin";
+            saveFileDialog.Filter = "Binary documents (.bin)|*.bin";
 
-            BinaryFormatter formatter = new BinaryFormatter();
-
-            using (FileStream fs = new FileStream("users.dat", FileMode.OpenOrCreate))
+            var result = saveFileDialog.ShowDialog();
+            if (result == true)
             {
-                PublicUsers.Add(new UserAbstraction(id, lastName, name, secondName, email));
+                writer.Create(saveFileDialog.FileName);
 
-                formatter.Serialize(fs, PublicUsers);
+                foreach (var u in Users)
+                    PublicUsers.Add(new UserAbstraction { ID = u.ID, LastName = u.LastName, Name = u.Name, 
+                        SecondName = u.SecondName, Email = u.Email });
 
-                addDataToUsers();
-            }
-        }
-
-        public void binarySerializationRemoveUser(int index)
-        {
-            binarySerializationOutput();
-
-            BinaryFormatter formatter = new BinaryFormatter();
-
-            using (FileStream fs = new FileStream("users.dat", FileMode.Create))
-            {
-                PublicUsers.RemoveAt(index);
-
-                formatter.Serialize(fs, PublicUsers);
-
-                addDataToUsers();
-            }
-        }
-
-        public void binarySerializationChangeUser(int index, int id, string lastName, string name, string secondName, string email)
-        {
-            binarySerializationOutput();
-
-            BinaryFormatter formatter = new BinaryFormatter();
-
-            using (FileStream fs = new FileStream("users.dat", FileMode.Create))
-            {
-                PublicUsers[index] = new UserAbstraction(id, lastName, name, secondName, email);
-
-                formatter.Serialize(fs, PublicUsers);
-
-                addDataToUsers();
-            }
-        }
-        #endregion
-
-        #region Json Serialization
-        public async Task jsonSerializationOutput()
-        {
-            PublicUsers.Clear();
-
-            using (FileStream fs = new FileStream("users.json", FileMode.OpenOrCreate))
-            {
-                PublicUsers = await JsonSerializer.DeserializeAsync<ObservableCollection<UserAbstraction>>(fs);
-
-                addDataToUsers();
-            }
-        }
-
-        public async Task jsonSerializationAddUser(int id, string lastName, string name, string secondName, string email)
-        {
-            await jsonSerializationOutput();
-
-            using (FileStream fs = new FileStream("users.json", FileMode.OpenOrCreate))
-            {
-                PublicUsers.Add(new UserAbstraction(id, lastName, name, secondName, email));
-
-                await JsonSerializer.SerializeAsync(fs, PublicUsers);
-
-                addDataToUsers();
-            }
-        }
-
-        public async Task jsonSerializationRemoveUser(int index)
-        {
-            await jsonSerializationOutput();
-
-            using (FileStream fs = new FileStream("users.json", FileMode.Create))
-            {
-                PublicUsers.RemoveAt(index);
-
-                await JsonSerializer.SerializeAsync(fs, PublicUsers);
-
-                addDataToUsers();
-            }
-        }
-
-        public async Task jsonSerializationChangeUser(int index, int id, string lastName, string name, string secondName, string email)
-        {
-            await jsonSerializationOutput();
-
-            using (FileStream fs = new FileStream("users.json", FileMode.Create))
-            {
-                PublicUsers[index] = new UserAbstraction(id, lastName, name, secondName, email);
-
-                await JsonSerializer.SerializeAsync(fs, PublicUsers);
-
-                addDataToUsers();
+                writer.Write(PublicUsers);
             }
         }
         #endregion
 
         void addDataToUsers() 
         {
-            Users.Clear();
+            Users = new ObservableCollection<User>();
 
             foreach (var u in PublicUsers)
                 Users.Add(new User { ID = u.ID, LastName = u.LastName, Name = u.Name, SecondName = u.SecondName, Email = u.Email });

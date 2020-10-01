@@ -1,4 +1,4 @@
-﻿using Prism.Mvvm;
+﻿using GalaSoft.MvvmLight;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,8 +7,7 @@ using System.Threading.Tasks;
 
 namespace UsersMvvm.Model
 {
-    [Serializable]
-    public class User : BindableBase
+    public class User : ViewModelBase
     {
         int id;
         public int ID 
