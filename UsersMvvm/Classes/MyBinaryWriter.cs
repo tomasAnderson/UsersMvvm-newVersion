@@ -17,7 +17,7 @@ namespace UsersMvvm.Classes
         {
             BinaryWriter bw;
 
-            //create the file
+            //create the file in a folder
             try
             {
                 bw = new BinaryWriter(new FileStream(outputFileName, FileMode.Create));
