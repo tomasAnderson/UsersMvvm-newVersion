@@ -14,7 +14,7 @@ namespace UsersMvvm.Converters
         {
             return values.ToList();
         }
-
+        
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
